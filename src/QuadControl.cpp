@@ -70,10 +70,16 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
-  cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
-  cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
-  cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
+  float c, tau_x, tau_y, tau_z;
+  float armL = L / sqrtf(2.f);
+  c = collThrustCmd / 4.f;
+  tau_x = momentCmd.x / (armL*4.f) ;
+  tau_y = momentCmd.y / (armL*4.f) ;
+  tau_z = momentCmd.z / (kappa*4.f);
+  cmd.desiredThrustsN[0] = c + tau_x + tau_y - tau_z; // front left
+  cmd.desiredThrustsN[1] = c - tau_x + tau_y + tau_z; // front right
+  cmd.desiredThrustsN[2] = c + tau_x - tau_y + tau_z; // rear left -> F4 in python notebook
+  cmd.desiredThrustsN[3] = c - tau_x - tau_y - tau_z; // rear right -> F3 in python notebook
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -98,7 +104,13 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  
+  V3F pqrErr = pqrCmd - pqr;
+
+  V3F Ixyz;
+  Ixyz.x = Ixx;
+  Ixyz.y = Iyy;
+  Ixyz.z = Izz;
+  momentCmd = Ixyz*kpPQR*pqrErr;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -129,9 +141,29 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+  if (collThrustCmd > 0)
+  {
+      float c_d = - collThrustCmd/mass;
+      float b_x_c_target = CONSTRAIN(accelCmd.x/c_d, - maxTiltAngle, maxTiltAngle);
+      float b_y_c_target = CONSTRAIN(accelCmd.y/c_d, - maxTiltAngle, maxTiltAngle);
 
+      float b_x_c_dot = kpBank*(b_x_c_target - R(0,2));
+      float b_y_c_dot = kpBank*(b_y_c_target - R(1,2));
+
+      pqrCmd.x = (1/R(2,2))*( + R(1,0)*b_x_c_dot - R(0,0)*b_y_c_dot);
+      pqrCmd.y = (1/R(2,2))*( + R(1,1)*b_x_c_dot - R(0,1)*b_y_c_dot);
+
+  }
+  else
+  {
+      pqrCmd.x = 0.0;
+      pqrCmd.y = 0.0;
+  }
+
+  pqrCmd.z = 0.0;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
+
 
   return pqrCmd;
 }
