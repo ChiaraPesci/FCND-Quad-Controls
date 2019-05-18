@@ -41,3 +41,30 @@ The gains `kpPQR` in `QuadControlParams.txt` are set to (90, 90, 6) to get the v
 The rotation of the vehicle about roll (omega.x) get controlled to 0. Including the roll-pitch control the quad level itself (as shown below), though it’ll still be flying away slowly since we’re not controlling velocity/position! Both checks are marked as PASSED.
 
 ![scenario2](images/scenario2.png)
+
+
+### Scenario 3: position/velocity and yaw angle control ###
+
+For this scenario, the position, altitude and yaw control have been implemented.  This scenario creates 2 identical quads, both with the same offset from their target points, but one initialized with yaw = 0 and the other one with yaw = 45 degrees. The following steps have been followed.
+
+ 1. Implement the code in the function `LateralPositionControl()`
+
+    The desired lateral accelerations are computed based on desired lateral position, velocity and acceleration and the current position. The z-component is set to 0. The acceleration is limited to the maximum lateral value given in the parameter file.
+
+ 2. Implement the code in the function `AltitudeControl()`
+
+    A PD controller here is implemented based on the equations given in lecture 4, with the additional check to limit the vertical velocity in the range (-maxDescentRate, maxAscentRate). The output is a thrust command.
+
+ 3. Implement the code in the function `YawControl()`
+
+    A proportional controller which gives the desired yaw rate is implemented. The function takes as inputs the commanded and current yaw, and returns the desired yaw rate. Note that the yaw angle has an upper limit, i.e. 2*PI.
+
+Once the functions have been implemented,
+
+ - tune parameters `kpPosZ` and `kpPosZ`
+ - tune parameters `kpVelXY` and `kpVelZ`
+ - tune parameters `kpYaw` and the 3rd (z) component of `kpPQR`
+
+and the quads should behave like in the animation below.
+
+![scenario3](images/scenario3.png)

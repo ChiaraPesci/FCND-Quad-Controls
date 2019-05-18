@@ -193,7 +193,22 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+  float err_z = posZCmd - posZ;
 
+  integratedAltitudeError += err_z*dt;
+  float int_term = KiPosZ*integratedAltitudeError;
+
+  velZCmd = - CONSTRAIN( - velZCmd, -maxDescentRate, maxAscentRate);
+
+  float err_z_dot = velZCmd - velZ;
+
+  float u_z_bar = kpPosZ*err_z + kpVelZ*err_z_dot + int_term + accelZCmd;
+
+  float b_z = R(2,2);
+
+  float acc_z = (u_z_bar - CONST_GRAVITY)/b_z;
+
+  thrust = - mass*acc_z;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
   
@@ -231,7 +246,33 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-  
+  V3F velCmd_lim = velCmd;
+
+  float velCmd_magH = sqrt(pow(velCmd.x, 2) + pow(velCmd.y, 2));
+
+  if (velCmd_magH > maxSpeedXY)
+  {
+      velCmd_lim = velCmd/velCmd_magH*maxSpeedXY;
+  }
+
+  V3F kp_pos;
+  kp_pos.x = kpPosXY;
+  kp_pos.y = kpPosXY;
+  kp_pos.z = 0.f;
+
+  V3F kp_vel;
+  kp_vel.x = kpVelXY;
+  kp_vel.y = kpVelXY;
+  kp_vel.z = 0.f;
+
+  accelCmd += kp_pos*(posCmd - pos) + kp_vel*(velCmd_lim - vel);
+
+  float accCmd_magH = sqrt(pow(accelCmd.x, 2) + pow(accelCmd.y, 2));
+
+  if (accCmd_magH > maxAccelXY)
+  {
+      accelCmd = accelCmd/accCmd_magH*maxAccelXY;
+  }
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
