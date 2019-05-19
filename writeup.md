@@ -68,3 +68,32 @@ Once the functions have been implemented,
 and the quads should behave like in the animation below.
 
 ![scenario3](images/scenario3.png)
+
+
+### Scenario 4: non-idealities and robustness ###
+
+In this part, some of the non-idealities and robustness of a controller are explored.  Here a configuration with 3 quads that are all are trying to move one meter forward is considered.  However, this time, these quads are all a bit different:
+ - The green quad has its center of mass shifted back
+ - The orange vehicle is an ideal quad
+ - The red vehicle is heavier than usual
+
+The suggested steps are:
+
+1. Run the controller & parameter set from Step 3.  Do all the quads seem to be moving OK?  If not, try to tweak the controller parameters to work for all 3 (tip: relax the controller).
+
+2. Edit `AltitudeControl()` to add basic integral control to help with the different-mass vehicle.
+
+   In the function the integral part of the controller has been added, i.e. *integralZerr += err_z dt, integral_term = KiPosZ integralZerr*.
+
+3. Tune the integral control (`KiPosZ`), and other control parameters until all the quads successfully move properly.
+
+![scenario4](images/scenario4.png)
+
+
+### Scenario 5: tracking trajectories ###
+
+The controller performance is tested on a trajectory. This scenario has two quads:
+ - the orange one is following `traj/FigureEight.txt`
+ - the other one is following `traj/FigureEightFF.txt` (it is the same trajectory)
+
+![scenario5](images/scenario5.png)
